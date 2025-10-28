@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JangaVoice USSD Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0455A4 0%, #4CA8D5 50%, #CE224E 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header .janga {
+            color: #0455A4;
+            background: white;
+            padding: 0 8px;
+            border-radius: 4px;
+        }
+
+        .header .voice {
+            color: #CE224E;
+            background: white;
+            padding: 0 8px;
+            border-radius: 4px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .phone-frame {
+            background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+            border-radius: 50px;
+            padding: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .phone-inner {
+            background: white;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .status-bar {
+            background: linear-gradient(90deg, #0455A4, #4CA8D5);
+            color: white;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .screen {
+            height: 600px;
+            background: white;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #0455A4, #4CA8D5);
+            color: white;
+        }
+
+        .screen-header .label {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .screen-header .title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .screen-content {
+            flex: 1;
+            padding: 20px;
+            background: #f8f9fa;
+            overflow-y: auto;
+        }
+
+        .menu-item {
+            background: white;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(4, 85, 164, 0.2);
+            border-color: #4CA8D5;
+        }
+
+        .menu-item .number {
+            color: #0455A4;
+            font-weight: 600;
+        }
+
+        .dialer-display {
+            padding: 40px 20px;
+            text-align: right;
+            background: white;
+        }
+
+        .dialer-label {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .dialer-input {
+            font-size: 32px;
+            font-weight: 300;
+            min-height: 48px;
+            color: #333;
+        }
+
+        .dialer-input.placeholder {
+            color: #ccc;
+        }
+
+        .dialer-pad {
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .dialer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .dialer-btn {
+            aspect-ratio: 1;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dialer-btn:hover {
+            background: linear-gradient(135deg, #4CA8D5, #0455A4);
+            color: white;
+            border-color: #0455A4;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background: white;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0455A4, #4CA8D5);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(4, 85, 164, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #CE224E, #F49D20);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(206, 34, 78, 0.3);
+        }
+
+        .confirmation-box {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #0455A4, #4CA8D5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .reference-box {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 2px solid #4CA8D5;
+        }
+
+        .reference-label {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .reference-number {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0455A4;
+        }
+
+        .info-box {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .info-box .info-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #0455A4;
+        }
+
+        .info-box .info-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-box .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+        }
+
+        .home-indicator {
+            background: white;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .home-bar {
+            width: 120px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .instructions {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .instruction-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .instruction-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #0455A4, #4CA8D5);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span class="janga">Janga</span><span class="voice">Voice</span> USSD Demo</h1>
+            <p>Interactive Phone Interface</p>
+        </div>
+
+        <div class="phone-frame">
+            <div class="phone-inner">
+                <div class="status-bar">
+                    <div>📶 📡</div>
+                    <div>9:41</div>
+                    <div>🔋 100%</div>
+                </div>
+
+                <div class="screen" id="screen">
+                    <!-- Screen content will be dynamically inserted here -->
+                </div>
+
+                <div class="home-indicator">
+                    <div class="home-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <div class="instruction-item">
+                <div class="instruction-number">1</div>
+                <div>Dial <strong>*799#</strong> on the phone</div>
+            </div>
+            <div class="instruction-item">
+                <div class="instruction-number">2</div>
+                <div>Navigate through the menu options</div>
+            </div>
+            <div class="instruction-item">
+                <div class="instruction-number">3</div>
+                <div>Click buttons to experience the full flow</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'dialer';
+        let history = [];
+        let inputValue = '';
+        let selectedOption = null;
+
+        function navigateTo(screen, option = null) {
+            history.push(currentScreen);
+            currentScreen = screen;
+            selectedOption = option;
+            inputValue = '';
+            renderScreen();
+        }
+
+        function goBack() {
+            if (history.length > 0) {
+                currentScreen = history.pop();
+                selectedOption = null;
+                renderScreen();
+            }
+        }
+
+        function handleDialerInput(digit) {
+            inputValue += digit;
+            renderScreen();
+        }
+
+        function handleCall() {
+            if (inputValue === '*799#') {
+                navigateTo('welcome');
+            }
+        }
+
+        function handleClear() {
+            inputValue = '';
+            renderScreen();
+        }
+
+        function generateReferenceNumber() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function renderScreen() {
+            const screen = document.getElementById('screen');
+            
+            switch(currentScreen) {
+                case 'dialer':
+                    screen.innerHTML = `
+                        <div class="dialer-display">
+                            <div class="dialer-label">Enter USSD Code</div>
+                            <div class="dialer-input ${inputValue ? '' : 'placeholder'}">
+                                ${inputValue || '*799#'}
+                            </div>
+                        </div>
+                        <div class="dialer-pad">
+                            <div class="dialer-grid">
+                                ${['1','2','3','4','5','6','7','8','9','*','0','#'].map(d => 
+                                    `<button class="dialer-btn" onclick="handleDialerInput('${d}')">${d}</button>`
+                                ).join('')}
+                            </div>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="btn btn-secondary" onclick="handleClear()">Clear</button>
+                                <button class="btn btn-primary" onclick="handleCall()">Call</button>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'welcome':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <div class="label">USSD</div>
+                            <div class="title">Welcome to JangaVoice</div>
+                        </div>
+                        <div class="screen-content">
+                            <div class="menu-item" onclick="navigateTo('hazard', 'Report Multi-Hazard')">
+                                <div><span class="number">1.</span> Report Multi-Hazard</div>
+                            </div>
+                            <div class="menu-item" onclick="navigateTo('water', 'Report Water Source Status')">
+                                <div><span class="number">2.</span> Report Water Source Status</div>
+                            </div>
+                            <div class="menu-item" onclick="navigateTo('borehole', 'Book Borehole Repair')">
+                                <div><span class="number">3.</span> Book Borehole Repair</div>
+                            </div>
+                            <div class="menu-item" onclick="navigateTo('vet', 'Book Vet Services')">
+                                <div><span class="number">4.</span> Book Vet Services</div>
+                            </div>
+                            <div class="menu-item" onclick="navigateTo('prices', 'Livestock & Crop Prices')">
+                                <div><span class="number">5.</span> Livestock & Crop Prices</div>
+                            </div>
+                            <div class="menu-item" onclick="navigateTo('contact', 'Contact Customer Care')">
+                                <div><span class="number">6.</span> Contact Customer Care</div>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-danger" onclick="navigateTo('dialer')">Cancel</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'hazard':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">Report Multi-Hazard</div>
+                        </div>
+                        <div class="screen-content">
+                            <div style="margin-bottom: 12px; color: #666; font-size: 14px;">Select hazard type:</div>
+                            ${[
+                                { num: '1', label: 'Drought' },
+                                { num: '2', label: 'Famine' },
+                                { num: '3', label: 'Animal Diseases' },
+                                { num: '4', label: 'Wildfire' },
+                                { num: '5', label: 'Human-Wildlife Conflict' },
+                                { num: '6', label: 'Human Disease Outbreak' },
+                                { num: '7', label: 'Flood' }
+                            ].map(item => 
+                                `<div class="menu-item" onclick="navigateTo('confirmation', '${item.label}')">
+                                    <div><span class="number">${item.num}.</span> ${item.label}</div>
+                                </div>`
+                            ).join('')}
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">0. Back</button>
+                            <button class="btn btn-danger" onclick="navigateTo('dialer')">Cancel</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'water':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">Water Source Status</div>
+                        </div>
+                        <div class="screen-content">
+                            <div style="margin-bottom: 12px; color: #666; font-size: 14px;">Select water source issue:</div>
+                            ${[
+                                { num: '1', label: 'Borehole Breakdown' },
+                                { num: '2', label: 'Dam Silting' },
+                                { num: '3', label: 'Dam Breaks/Banks Damaged' },
+                                { num: '4', label: 'Water Contamination' },
+                                { num: '5', label: 'Well Silting' }
+                            ].map(item => 
+                                `<div class="menu-item" onclick="navigateTo('confirmation', '${item.label}')">
+                                    <div><span class="number">${item.num}.</span> ${item.label}</div>
+                                </div>`
+                            ).join('')}
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">0. Back</button>
+                            <button class="btn btn-danger" onclick="navigateTo('dialer')">Cancel</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'borehole':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">Book Borehole Repair</div>
+                        </div>
+                        <div class="screen-content">
+                            <div style="margin-bottom: 12px; color: #666; font-size: 14px;">Select repair issue:</div>
+                            ${[
+                                { num: '1', label: 'Pump Malfunction' },
+                                { num: '2', label: 'Water Level Issues' },
+                                { num: '3', label: 'Solar System Issues' },
+                                { num: '4', label: 'Generator Issues' }
+                            ].map(item => 
+                                `<div class="menu-item" onclick="navigateTo('confirmation', '${item.label}')">
+                                    <div><span class="number">${item.num}.</span> ${item.label}</div>
+                                </div>`
+                            ).join('')}
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">0. Back</button>
+                            <button class="btn btn-danger" onclick="navigateTo('dialer')">Cancel</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'vet':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">Book Vet Services</div>
+                        </div>
+                        <div class="screen-content">
+                            <div style="margin-bottom: 12px; color: #666; font-size: 14px;">Select veterinary service:</div>
+                            ${[
+                                { num: '1', label: 'Vaccination' },
+                                { num: '2', label: 'Deworming' },
+                                { num: '3', label: 'General Checkup' },
+                                { num: '4', label: 'Emergency Visit' }
+                            ].map(item => 
+                                `<div class="menu-item" onclick="navigateTo('confirmation', '${item.label}')">
+                                    <div><span class="number">${item.num}.</span> ${item.label}</div>
+                                </div>`
+                            ).join('')}
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">0. Back</button>
+                            <button class="btn btn-danger" onclick="navigateTo('dialer')">Cancel</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'prices':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">Livestock & Crop Prices</div>
+                        </div>
+                        <div class="screen-content">
+                            <div style="margin-bottom: 12px; color: #666; font-size: 14px;">Select category:</div>
+                            <div class="menu-item" onclick="navigateTo('livestock')">
+                                <div><span class="number">1.</span> Livestock Prices</div>
+                            </div>
+                            <div class="menu-item" onclick="navigateTo('crops')">
+                                <div><span class="number">2.</span> Crop Prices</div>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">0. Back</button>
+                            <button class="btn btn-danger" onclick="navigateTo('dialer')">Cancel</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'livestock':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">Livestock Prices</div>
+                        </div>
+                        <div class="screen-content">
+                            <div style="margin-bottom: 12px; color: #666; font-size: 14px;">Select livestock type:</div>
+                            ${[
+                                { num: '1', label: 'Camel' },
+                                { num: '2', label: 'Cattle' },
+                                { num: '3', label: 'Goats' },
+                                { num: '4', label: 'Sheep' },
+                                { num: '5', label: 'Poultry/Hens' }
+                            ].map(item => 
+                                `<div class="menu-item" onclick="navigateTo('price_display', '${item.label}')">
+                                    <div><span class="number">${item.num}.</span> ${item.label}</div>
+                                </div>`
+                            ).join('')}
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">0. Back</button>
+                            <button class="btn btn-danger" onclick="navigateTo('dialer')">Cancel</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'crops':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">Crop Prices</div>
+                        </div>
+                        <div class="screen-content">
+                            <div style="margin-bottom: 12px; color: #666; font-size: 14px;">Select crop type:</div>
+                            ${[
+                                { num: '1', label: 'Maize' },
+                                { num: '2', label: 'Beans' },
+                                { num: '3', label: 'Millet' },
+                                { num: '4', label: 'Sorghum' },
+                                { num: '5', label: 'Other Cereals' }
+                            ].map(item => 
+                                `<div class="menu-item" onclick="navigateTo('price_display', '${item.label}')">
+                                    <div><span class="number">${item.num}.</span> ${item.label}</div>
+                                </div>`
+                            ).join('')}
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">0. Back</button>
+                            <button class="btn btn-danger" onclick="navigateTo('dialer')">Cancel</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'contact':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">Customer Care</div>
+                        </div>
+                        <div class="screen-content">
+                            <div class="info-box">
+                                <div class="info-title">Contact Information:</div>
+                                <div class="info-item">📞 Hotline: 0800-526-428</div>
+                                <div class="info-item">📧 Email: support@jangavoice.ke</div>
+                                <div class="info-item">🕒 Hours: Mon-Fri 8AM-6PM</div>
+                                <div class="info-item">Sat: 9AM-1PM</div>
+                            </div>
+                            <div style="text-align: center; font-size: 12px; color: #999;">
+                                SMS confirmation will be sent to your number
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+                            <button class="btn btn-primary" onclick="navigateTo('dialer')">Done</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'confirmation':
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <div class="label">USSD</div>
+                            <div class="title">Confirmation</div>
+                        </div>
+                        <div class="screen-content">
+                            <div class="confirmation-box">
+                                <div class="success-icon">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <div style="font-size: 20px; font-weight: 600; margin-bottom: 12px;">Thank You!</div>
+                                <div style="font-size: 14px; color: #666; margin-bottom: 20px;">
+                                    Your report for <strong style="color: #0455A4;">${selectedOption}</strong> has been recorded.
+                                </div>
+                                <div class="reference-box">
+                                    <div class="reference-label">Reference Number</div>
+                                    <div class="reference-number">${generateReferenceNumber()}</div>
+                                </div>
+                                <div style="font-size: 12px; color: #999; margin-top: 16px;">
+                                    Our team will respond shortly. SMS confirmation sent.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="history = []; navigateTo('welcome')">Back to Main Menu</button>
+                        </div>
+                    `;
+                    break;
+
+                case 'price_display':
+                    let priceContent = '';
+                    if (selectedOption === 'Camel') {
+                        priceContent = `
+                            <div class="info-item">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Adult Male</span>
+                                    <strong style="color: #0455A4;">KES 80K-120K</strong>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Adult Female</span>
+                                    <strong style="color: #0455A4;">KES 70K-100K</strong>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Young</span>
+                                    <strong style="color: #0455A4;">KES 40K-60K</strong>
+                                </div>
+                            </div>
+                        `;
+                    } else if (selectedOption === 'Maize') {
+                        priceContent = `
+                            <div class="info-item">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Per 90kg Bag</span>
+                                    <strong style="color: #0455A4;">KES 3,500-4,200</strong>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Per Kilogram</span>
+                                    <strong style="color: #0455A4;">KES 40-50</strong>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        priceContent = `
+                            <div style="text-align: center; padding: 20px; color: #666;">
+                                Current market prices for ${selectedOption} will be displayed here
+                            </div>
+                        `;
+                    }
+
+                    screen.innerHTML = `
+                        <div class="screen-header">
+                            <button class="back-button" onclick="goBack()">← Back</button>
+                            <div class="label">USSD</div>
+                            <div class="title">${selectedOption} Prices</div>
+                        </div>
+                        <div class="screen-content">
+                            <div class="info-box">
+                                <div style="font-size: 12px; color: #999; margin-bottom: 8px;">
+                                    Market: Marsabit<br>
+                                    Date: Oct 28, 2025
+                                </div>
+                                ${priceContent}
+                                <div style="text-align: center; font-size: 11px; color: #999; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0;">
+                                    SMS with detailed prices sent to your number
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+                            <button class="btn btn-primary" onclick="history = []; navigateTo('welcome')">Main Menu</button>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        // Initialize the screen
+        renderScreen();
+    </script>
+</body>
+</html>
